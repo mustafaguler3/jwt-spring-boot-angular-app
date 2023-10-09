@@ -15,4 +15,6 @@ public class HttpResponse {
     private String reason;
     private String message;
 
+    public HttpResponse(int value, String toUpperCase, String forbiddenMessage) {
+    }
 }
