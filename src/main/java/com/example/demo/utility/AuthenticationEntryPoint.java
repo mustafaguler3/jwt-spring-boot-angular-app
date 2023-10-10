@@ -20,7 +20,8 @@ public class AuthenticationEntryPoint extends Http403ForbiddenEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException arg2) throws IOException {
-        HttpResponse httpResponse = new HttpResponse(FORBIDDEN.value(),FORBIDDEN.getReasonPhrase().toUpperCase(), SecurityConstant.FORBIDDEN_MESSAGE);
+
+        HttpResponse httpResponse = new HttpResponse(FORBIDDEN.value(),FORBIDDEN,FORBIDDEN.getReasonPhrase().toUpperCase(),SecurityConstant.FORBIDDEN_MESSAGE);
 
         response.setContentType(APPLICATION_JSON_VALUE);
         response.setStatus(FORBIDDEN.value());

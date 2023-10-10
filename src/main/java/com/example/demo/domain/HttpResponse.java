@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Date;
 
-@AllArgsConstructor
-@NoArgsConstructor
+
+
 @Data
 public class HttpResponse {
 
@@ -29,4 +29,5 @@ public class HttpResponse {
         this.reason = reason;
         this.message = message;
     }
+
 }

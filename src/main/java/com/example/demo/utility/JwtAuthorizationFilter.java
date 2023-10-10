@@ -11,6 +11,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.servlet.Filter;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import java.io.IOException;
 import java.util.List;
 
@@ -40,6 +44,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             }
             String token = authHeader.substring(SecurityConstant.TOKEN_HEADER.length());
             String username = tokenProvider.getSubject(token);
+
             if (tokenProvider.isTokenValid(username,token) && SecurityContextHolder.getContext().getAuthentication() == null){
                 List<GrantedAuthority> authorities = tokenProvider.getAuthorities(token);
                 Authentication authentication = tokenProvider.getAuthentication(username,authorities,request);
@@ -51,6 +56,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request,response);
     }
+
+
 }
 
 
