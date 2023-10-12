@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class LoginAttemptService {
+
     private static final int MAXIMUM_NUMBER_OF_ATTEMPT = 5;
     private static final int ATTEMPT_INCREMENT = 1;
 
@@ -29,7 +30,7 @@ public class LoginAttemptService {
         loginAttemptCache.invalidate(username);
     }
 
-    public void addUserToLoginAttempCache(String username) throws ExecutionException {
+    public void addUserToLoginAttemptCache(String username) throws ExecutionException {
         int attempts = 0;
         attempts = ATTEMPT_INCREMENT + loginAttemptCache.get(username);
         loginAttemptCache.put(username,attempts);
