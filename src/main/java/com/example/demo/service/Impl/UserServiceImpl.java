@@ -5,6 +5,7 @@ import com.example.demo.domain.User;
 import com.example.demo.exceptions.EmailExistException;
 import com.example.demo.exceptions.UsernameExistException;
 import com.example.demo.repositories.UserRepository;
+import com.example.demo.service.LoginAttemptService;
 import com.example.demo.service.UserService;
 import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
@@ -21,9 +22,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static com.example.demo.constants.Role.ROLE_USER;
-import static jdk.internal.joptsimple.internal.Strings.EMPTY;
+import static org.apache.logging.log4j.util.Strings.EMPTY;
 
 
 @Service
@@ -33,11 +35,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private Logger LOGGER = LoggerFactory.getLogger(getClass());
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
-
+    private LoginAttemptService loginAttemptService
+            ;
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, LoginAttemptService loginAttemptService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -48,14 +52,32 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             LOGGER.error("User not found by username "+username);
             throw new UsernameNotFoundException("User not found by username " + username);
         }else {
-            user.setLastLoginDateDisplay(user.getLastLoginDate());
-            user.setLastLoginDate(new Date());
-            userRepository.save(user);
-            UserPricipal userPricipal = new UserPricipal(user);
+            try {
+                validateLoginAttempt(user);
+                user.setLastLoginDateDisplay(user.getLastLoginDate());
+                user.setLastLoginDate(new Date());
+                userRepository.save(user);
+                UserPricipal userPricipal = new UserPricipal(user);
 
-            LOGGER.info("Returning found user by username "+ username);
+                LOGGER.info("Returning found user by username "+ username);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
         }
         return null;
+    }
+
+    private void validateLoginAttempt(User user) throws ExecutionException {
+        if (user.isLocked() != true){
+            if (loginAttemptService.hasExceededMaxAttempts(user.getUsername())){
+                user.setLocked(false);
+            }else {
+                user.setLocked(true);
+            }
+        }else {
+            loginAttemptService.evictUserFromLoginAttemptCache(user.getUsername());
+        }
     }
 
     @Override
